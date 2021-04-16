@@ -1,9 +1,10 @@
 import React from 'react';
-import { Text, View, TouchableOpacity, TextInput, Image, StyleSheet} from 'react-native';
+import { Text, View, TouchableOpacity, TextInput, Image, StyleSheet, KeyboardAvoidingView, Alert, ToastAndroid } from 'react-native';
 import * as Permissions from 'expo-permissions';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import firebase from 'firebase';
 import db from '../config';
+
 
 export default class TransactionScreen extends React.Component {
   constructor(){
@@ -18,6 +19,7 @@ export default class TransactionScreen extends React.Component {
     }
   }
 
+
   getCameraPermissions = async (id) =>{
     const {status}  = await Permissions.askAsync(Permissions.CAMERA);
 
@@ -30,6 +32,7 @@ export default class TransactionScreen extends React.Component {
       scanned : false
     })
   }
+
 
   handleBarCodeScanned  = async ({type, data})=>{
     const { buttonState} = this.state
@@ -49,6 +52,7 @@ export default class TransactionScreen extends React.Component {
       })
     }
   }
+
 
   initiateBookIssue = async ()=>{
     //add a transaction
@@ -73,6 +77,7 @@ export default class TransactionScreen extends React.Component {
       scannedBookId: ''
     })
   }
+
 
   initiateBookReturn = async ()=>{
     //add a transaction
@@ -99,6 +104,7 @@ export default class TransactionScreen extends React.Component {
     })
   }
 
+
   handleTransaction = async()=>{
     var transactionMessage = null;
     db.collection("books").doc(this.state.scannedBookId).get()
@@ -107,10 +113,13 @@ export default class TransactionScreen extends React.Component {
       if(book.bookAvailability){
         this.initiateBookIssue();
         transactionMessage = "Book Issued"
+        Alert.alert(transactionMessage);
+       // ToastAndroid
       }
       else{
         this.initiateBookReturn();
         transactionMessage = "Book Returned"
+        Alert.alert(transactionMessage);
       }
     })
 
@@ -118,6 +127,7 @@ export default class TransactionScreen extends React.Component {
       transactionMessage : transactionMessage
     })
   }
+
 
   render(){
     const hasCameraPermissions = this.state.hasCameraPermissions;
@@ -135,40 +145,45 @@ export default class TransactionScreen extends React.Component {
 
     else if (buttonState === "normal"){
       return(
-        <View style={styles.container}>
+        <KeyboardAvoidingView style = {styles.container} behavior = 'padding' enabled>
+
         <View>
           <Image
             source = {require("../assets/booklogo.jpg")}
             style= {{width:200, height:200}}/>
           <Text style={{textAlign:'center', fontSize:30,}}>Wily</Text>
         </View>
+
         <View style={styles.inputView}>
-        <TextInput
-          style={styles.inputBox}
-          placeholder="Book Id"
-          value={this.state.scannedBookId}/>
-        <TouchableOpacity
-          style={styles.scanButton}
-          onPress={()=>{
-            this.getCameraPermissions("BookId")
+          <TextInput
+            style={styles.inputBox}
+            placeholder="Book Id"
+            value={this.state.scannedBookId}
+            onChangeText = {text => this.setState({ scannedBookId: text })}/>
+          <TouchableOpacity
+            style={styles.scanButton}
+            onPress={()=>{
+              this.getCameraPermissions("BookId")
           }}>
-          <Text style={styles.buttonText}>Scan</Text>
-        </TouchableOpacity>
+            <Text style={styles.buttonText}>Scan</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.inputView}>
-        <TextInput
-          style={styles.inputBox}
-          placeholder="Student Id"
-          value={this.state.scannedStudentId}/>
-        <TouchableOpacity
-          style={styles.scanButton}
-          onPress={()=>{
-            this.getCameraPermissions("StudentId")
+          <TextInput
+            style={styles.inputBox}
+            placeholder="Student Id"
+            value={this.state.scannedStudentId}
+            onChangeText = {text => this.setState({ scannedStudentId: text })}/>
+          <TouchableOpacity
+            style={styles.scanButton}
+            onPress={()=>{
+              this.getCameraPermissions("StudentId")
           }}>
-          <Text style={styles.buttonText}>Scan</Text>
-        </TouchableOpacity>
+            <Text style={styles.buttonText}>Scan</Text>
+          </TouchableOpacity>
         </View>
+
         <Text style={styles.transactionAlert}>{this.state.transactionMessage}</Text>
         <TouchableOpacity
           style={styles.submitButton}
@@ -177,7 +192,8 @@ export default class TransactionScreen extends React.Component {
           }}>
           <Text style={styles.submitButtonText}>Submit</Text>
         </TouchableOpacity>
-      </View>
+
+      </KeyboardAvoidingView>
       )
     }
   }
